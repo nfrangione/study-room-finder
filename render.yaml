@@ -52,7 +52,7 @@ services:
         fromService:
           name: study-room-api
           type: web
-          property: hostWithScheme  # Fix: was 'host', now includes https://
+          property: host            # hostWithScheme unsupported; prepend https:// in frontend code
       - key: REACT_APP_FIREBASE_API_KEY
         sync: false
       - key: REACT_APP_FIREBASE_AUTH_DOMAIN
@@ -63,4 +63,4 @@ databases:
     databaseName: studyrooms
     user: studyadmin
     region: oregon
-    plan: free
+    plan: free                     # Free tier: 1GB storage, 90-day limit
