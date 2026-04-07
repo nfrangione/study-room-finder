@@ -1,6 +1,3 @@
-
-Copy
-
 # render.yaml — Infrastructure as Code for Study Room Finder
 # Render.com reads this file to provision all services automatically.
 # Commit this file to your repo — Render picks up changes on every push.
