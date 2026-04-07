@@ -1,7 +1,9 @@
+
+Copy
+
 # render.yaml — Infrastructure as Code for Study Room Finder
 # Render.com reads this file to provision all services automatically.
 # Commit this file to your repo — Render picks up changes on every push.
-
 services:
   # ─── BACKEND: Node.js REST API ─────────────────────────────────
   - type: web
@@ -26,13 +28,12 @@ services:
       - key: FRONTEND_URL
         fromService:
           name: study-room-frontend
-          type: web
+          type: static             # Fix: was 'web', must match env: static
           property: host
       - key: FIREBASE_PROJECT_ID
         sync: false                # Set manually in Render dashboard
       - key: SENDGRID_API_KEY
         sync: false                # Set manually in Render dashboard
-
   # ─── FRONTEND: React Static Site ───────────────────────────────
   - type: web
     name: study-room-frontend
@@ -54,16 +55,15 @@ services:
         fromService:
           name: study-room-api
           type: web
-          property: host
+          property: hostWithScheme  # Fix: was 'host', now includes https://
       - key: REACT_APP_FIREBASE_API_KEY
         sync: false
       - key: REACT_APP_FIREBASE_AUTH_DOMAIN
         sync: false
-
 # ─── DATABASE: PostgreSQL ───────────────────────────────────────
 databases:
   - name: study-room-db
     databaseName: studyrooms
     user: studyadmin
     region: oregon
-    plan: free                     # Free tier: 1GB storage, 90-day limit
+    plan: free
