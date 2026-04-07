@@ -9,7 +9,6 @@ services:
     region: oregon
     plan: free
     branch: main
-    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
@@ -25,7 +24,7 @@ services:
       - key: FRONTEND_URL
         fromService:
           name: study-room-frontend
-          type: static             # Fix: was 'web', must match env: static
+          type: static
           property: host
       - key: FIREBASE_PROJECT_ID
         sync: false                # Set manually in Render dashboard
@@ -36,7 +35,6 @@ services:
     name: study-room-frontend
     env: static
     branch: main
-    rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: build
     headers:
@@ -52,7 +50,7 @@ services:
         fromService:
           name: study-room-api
           type: web
-          property: host            # hostWithScheme unsupported; prepend https:// in frontend code
+          property: host            # prepend https:// in frontend code
       - key: REACT_APP_FIREBASE_API_KEY
         sync: false
       - key: REACT_APP_FIREBASE_AUTH_DOMAIN
