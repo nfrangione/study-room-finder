@@ -37,7 +37,6 @@ services:
   - type: web
     name: study-room-frontend
     env: static
-    plan: free
     branch: main
     rootDir: frontend
     buildCommand: npm install && npm run build
