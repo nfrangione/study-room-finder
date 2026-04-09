@@ -1,8 +1,4 @@
-# render.yaml — Infrastructure as Code for Study Room Finder
-# Render.com reads this file to provision all services automatically.
-# Commit this file to your repo — Render picks up changes on every push.
 services:
-  # ─── BACKEND: Node.js REST API ─────────────────────────────────
   - type: web
     name: study-room-api
     env: node
@@ -10,7 +6,7 @@ services:
     plan: free
     branch: main
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node index.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -20,42 +16,23 @@ services:
           name: study-room-db
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true        # Render auto-generates a secure secret
-      - key: FRONTEND_URL
-        fromService:
-          name: study-room-frontend
-          type: static
-          property: host
+        generateValue: true
       - key: FIREBASE_PROJECT_ID
-        sync: false                # Set manually in Render dashboard
+        sync: false
       - key: SENDGRID_API_KEY
-        sync: false                # Set manually in Render dashboard
-  # ─── FRONTEND: React Static Site ───────────────────────────────
+        sync: false
+
   - type: web
     name: study-room-frontend
     env: static
     branch: main
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
+    buildCommand: echo "static site"
+    staticPublishPath: public
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: REACT_APP_API_URL
-        fromService:
-          name: study-room-api
-          type: web
-          property: host            # prepend https:// in frontend code
-      - key: REACT_APP_FIREBASE_API_KEY
-        sync: false
-      - key: REACT_APP_FIREBASE_AUTH_DOMAIN
-        sync: false
-# ─── DATABASE: PostgreSQL ───────────────────────────────────────
+
 databases:
   - name: study-room-db
     databaseName: studyrooms
