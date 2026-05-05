@@ -1,5 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head><meta charset="utf-8"/><title>Study Room Finder</title></head>
-  <body><h1>Study Room Finder</h1><p>API is running.</p></body>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SSU Room Scanner</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h1 { font-size: 1.5rem; }
+    header p  { font-size: 0.85rem; opacity: 0.8; margin-top: 3px; }
+    #last-refresh { font-size: 0.8rem; opacity: 0.7; }
+
+    /* ── SUMMARY BAR ── */
+    .summary {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 32px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat .num  { font-size: 1.5rem; font-weight: bold; }
+    .stat .label { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
+    .stat.empty    .num { color: #10b981; }
+    .stat.occupied .num { color: #ef4444; }
+    .stat.total    .num { color: #1e3a8a; }
+
+    /* ── CONTROLS ── */
+    .controls {
+      padding: 16px 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .controls select, .controls input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e0;
+      font-size: 0.875rem;
+      background: white;
+    }
+    .controls button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: #1e3a8a;
+      color: white;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .controls button:hover { background: #1d4ed8; }
+
+    /* ── MAIN GRID ── */
+    main { padding: 24px 32px; }
+    #status-msg { font-size: 0.85rem; color: #6b7280; margin-bottom: 16px; }
+
+    .buildings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .building-section h2 {
+      font-size: 1rem;
+      color: #1e3a8a;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #dbeafe;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .building-section h2 .b-counts {
+      font-size: 0.8rem;
+      font-weight: normal;
+      color: #6b7280;
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      border-left: 4px solid #cbd5e0;
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .card.empty    { border-left-color: #10b981; }
+    .card.occupied { border-left-color: #ef4444; }
+
+    .card h3 { font-size: 0.9rem; margin-bottom: 4px; }
+    .card .meta { font-size: 0.75rem; color: #6b7280; margin-bottom: 8px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .badge.empty    { background: #d1fae5; color: #065f46; }
+    .badge.occupied { background: #fee2e2; color: #991b1b; }
+
+    .card .updated { font-size: 0.7rem; color: #9ca3af; margin-top: 6px; }
+
+    .no-results { color: #6b7280; font-size: 0.9rem; padding: 20px 0; }
+    .error-msg {
+      background: #fee2e2; color: #991b1b;
+      padding: 16px; border-radius: 8px; margin-bottom: 16px;
+    }
+
+    @media (max-width: 600px) {
+      header, .controls, main, .summary { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📍 SSU Room Scanner</h1>
+    <p>Sonoma State University — Real-time occupancy for all academic buildings</p>
+  </div>
+  <div id="last-refresh">—</div>
+</header>
+
+<div class="summary">
+  <div class="stat total">
+    <div class="num" id="count-total">—</div>
+    <div class="label">Total Rooms</div>
+  </div>
+  <div class="stat empty">
+    <div class="num" id="count-empty">—</div>
+    <div class="label">Empty</div>
+  </div>
+  <div class="stat occupied">
+    <div class="num" id="count-occupied">—</div>
+    <div class="label">Occupied</div>
+  </div>
+</div>
+
+<div class="controls">
+  <select id="filter-building">
+    <option value="all">All Buildings</option>
+    <option value="Salazar Hall">Salazar Hall</option>
+    <option value="Darwin Hall">Darwin Hall</option>
+    <option value="Stevenson Hall">Stevenson Hall</option>
+    <option value="Schulz Information Center">Schulz Library</option>
+    <option value="Student Center">Student Center</option>
+    <option value="Rachel Carson Hall">Rachel Carson Hall</option>
+  </select>
+  <select id="filter-type">
+    <option value="all">All Room Types</option>
+    <option value="Study Room">Study Rooms</option>
+    <option value="Classroom">Classrooms</option>
+    <option value="Lab">Labs</option>
+    <option value="Lounge">Lounges</option>
+  </select>
+  <select id="filter-status">
+    <option value="all">Any Status</option>
+    <option value="empty">Empty Only</option>
+    <option value="occupied">Occupied Only</option>
+  </select>
+  <button onclick="loadRooms()">🔄 Refresh</button>
+</div>
+
+<main>
+  <p id="status-msg">Loading rooms...</p>
+  <div id="room-output" class="buildings-grid"></div>
+</main>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────
+  // Replace with your API Gateway URL after deploying Lambda
+  const API_URL = "https://YOUR_API_GATEWAY_ID.execute-api.us-east-1.amazonaws.com/prod";
+
+  let allRooms = [];
+
+  // ── FETCH ───────────────────────────────────────────────────────
+  async function loadRooms() {
+    document.getElementById("status-msg").textContent = "Fetching latest data...";
+    document.getElementById("room-output").innerHTML = "";
+
+    try {
+      const res = await fetch(`${API_URL}/rooms`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      allRooms = data.rooms || [];
+      document.getElementById("last-refresh").textContent =
+        `Last updated: ${new Date().toLocaleTimeString()}`;
+      applyFilters();
+    } catch (err) {
+      document.getElementById("status-msg").textContent = "";
+      document.getElementById("room-output").innerHTML =
+        `<div class="error-msg">⚠️ Could not load data: ${err.message}<br/>
+         Make sure API_URL is set to your API Gateway endpoint.</div>`;
+    }
+  }
+
+  // ── FILTER & RENDER ─────────────────────────────────────────────
+  function applyFilters() {
+    const building = document.getElementById("filter-building").value;
+    const type     = document.getElementById("filter-type").value;
+    const status   = document.getElementById("filter-status").value;
+
+    let rooms = allRooms;
+    if (building !== "all") rooms = rooms.filter(r => r.Building === building);
+    if (type     !== "all") rooms = rooms.filter(r => r.RoomType === type);
+    if (status   !== "all") rooms = rooms.filter(r => r.Status   === status);
+
+    // Update summary counts
+    document.getElementById("count-total").textContent    = rooms.length;
+    document.getElementById("count-empty").textContent    = rooms.filter(r => r.Status === "empty").length;
+    document.getElementById("count-occupied").textContent = rooms.filter(r => r.Status === "occupied").length;
+
+    document.getElementById("status-msg").textContent =
+      `Showing ${rooms.length} room${rooms.length !== 1 ? "s" : ""}`;
+
+    renderRooms(rooms);
+  }
+
+  function renderRooms(rooms) {
+    const output = document.getElementById("room-output");
+
+    if (rooms.length === 0) {
+      output.innerHTML = `<p class="no-results">No rooms match your filters.</p>`;
+      return;
+    }
+
+    // Group by building
+    const grouped = {};
+    rooms.forEach(r => {
+      if (!grouped[r.Building]) grouped[r.Building] = [];
+      grouped[r.Building].push(r);
+    });
+
+    output.innerHTML = Object.entries(grouped).map(([building, bRooms]) => {
+      const emptyCount    = bRooms.filter(r => r.Status === "empty").length;
+      const occupiedCount = bRooms.filter(r => r.Status === "occupied").length;
+      return `
+        <div class="building-section">
+          <h2>
+            🏛 ${building}
+            <span class="b-counts">
+              ${emptyCount} empty · ${occupiedCount} occupied
+            </span>
+          </h2>
+          <div class="rooms-grid">
+            ${bRooms.map(room => `
+              <div class="card ${room.Status}">
+                <h3>${room.RoomName}</h3>
+                <p class="meta">
+                  Floor ${room.Floor} &nbsp;·&nbsp;
+                  ${room.RoomType} &nbsp;·&nbsp;
+                  👥 ${room.Capacity}
+                </p>
+                <span class="badge ${room.Status}">${room.Status}</span>
+                <p class="updated">
+                  ${room.LastUpdated
+                    ? "Updated " + new Date(room.LastUpdated).toLocaleTimeString()
+                    : ""}
+                </p>
+              </div>
+            `).join("")}
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // ── BIND FILTERS ────────────────────────────────────────────────
+  ["filter-building", "filter-type", "filter-status"].forEach(id => {
+    document.getElementById(id).addEventListener("change", applyFilters);
+  });
+
+  // Load on open, auto-refresh every 60 seconds
+  loadRooms();
+  setInterval(loadRooms, 60000);
+</script>
+
+</body>
 </html>
