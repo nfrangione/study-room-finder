@@ -1,13 +1,8 @@
 {
   "name": "study-room-finder",
   "version": "1.0.0",
-  "description": "Study Room Finder API",
-  "main": "index.js",
+  "description": "Study Room Finder static frontend hosted on Render with AWS serverless backend",
   "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "test": "echo \"No build required for static frontend\" && exit 0"
   }
 }
