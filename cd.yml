@@ -1,30 +1,17 @@
-name: CD — Deploy to Render
+name: CD — Deploy Render Frontend
 
-# Only runs when CI passes AND code is merged to main
 on:
   push:
     branches: [main]
 
 jobs:
   deploy:
-    name: Trigger Render Deployment
+    name: Trigger Render Frontend Deployment
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Render auto-deploys on push to main when connected to GitHub.
-      # These steps trigger the deploy hooks and wait for confirmation.
-
-      - name: Deploy backend to Render
-        run: |
-          curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" \
-            -H "Content-Type: application/json" \
-            --fail \
-            --silent \
-            --show-error
-          echo "✅ Backend deploy triggered"
 
       - name: Deploy frontend to Render
         run: |
@@ -35,26 +22,24 @@ jobs:
             --show-error
           echo "✅ Frontend deploy triggered"
 
-      - name: Wait for backend to be healthy
+      - name: Wait for frontend to be live
         run: |
-          echo "Waiting for backend health check..."
-          MAX_RETRIES=20
-          COUNT=0
-          until curl --silent --fail "${{ secrets.RENDER_BACKEND_URL }}/health"; do
-            COUNT=$((COUNT+1))
-            if [ $COUNT -ge $MAX_RETRIES ]; then
-              echo "❌ Backend did not become healthy in time"
-              exit 1
-            fi
-            echo "  Not ready yet, retrying in 15s... ($COUNT/$MAX_RETRIES)"
-            sleep 15
-          done
-          echo "✅ Backend is healthy"
+          echo "Waiting for Render frontend to update..."
+          sleep 60
+
+          curl --fail --silent --show-error \
+            "https://study-room-frontend.onrender.com" \
+            > /tmp/frontend.html
+
+          grep -q "SSU Room Scanner" /tmp/frontend.html
+
+          echo "✅ Frontend is live"
 
       - name: Post deployment summary
         run: |
           echo "────────────────────────────────────"
-          echo "  Deployment complete"
+          echo "  Frontend deployment complete"
+          echo "  URL    : https://study-room-frontend.onrender.com"
           echo "  Commit : ${{ github.sha }}"
           echo "  Branch : ${{ github.ref_name }}"
           echo "  Actor  : ${{ github.actor }}"
