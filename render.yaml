@@ -10,4 +10,4 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-                  # Free tier: 1GB storage, 90-day limit
+                  
