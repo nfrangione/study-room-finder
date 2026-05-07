@@ -487,19 +487,35 @@
       }
 
       currentUser = user;
-      currentIdToken = await user.getIdToken();
 
       authScreen.style.display = "none";
       appScreen.style.display = "block";
       userInfo.textContent = user.email || "Signed in";
 
-      await loadRooms();
+      try {
+        // Force a fresh token immediately after login so Lambda can verify it.
+        currentIdToken = await user.getIdToken(true);
+
+        // Small delay helps avoid first-login race conditions after popup auth.
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        await loadRooms();
+      } catch (err) {
+        console.error("Initial auth/load error:", err);
+        document.getElementById("status-msg").textContent = "";
+        document.getElementById("room-output").innerHTML =
+          `<div class="error-msg">
+            ⚠️ Could not initialize signed-in session: ${err.message}
+          </div>`;
+      }
     });
 
-    async function authHeaders() {
-      if (!currentUser) return {};
+    async function authHeaders(forceRefresh = false) {
+      if (!currentUser) {
+        throw new Error("No signed-in user");
+      }
 
-      currentIdToken = await currentUser.getIdToken();
+      currentIdToken = await currentUser.getIdToken(forceRefresh);
 
       return {
         Authorization: `Bearer ${currentIdToken}`
@@ -523,9 +539,21 @@
       document.getElementById("room-output").innerHTML = "";
 
       try {
-        const res = await fetch(`${API_URL}/rooms`, {
-          headers: await authHeaders()
+        let res = await fetch(`${API_URL}/rooms`, {
+          headers: await authHeaders(false)
         });
+
+        // First login can occasionally send a token before Lambda accepts it.
+        // If that happens, force-refresh the token and retry once.
+        if (res.status === 401) {
+          console.warn("Got HTTP 401. Refreshing Firebase token and retrying once...");
+
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          res = await fetch(`${API_URL}/rooms`, {
+            headers: await authHeaders(true)
+          });
+        }
 
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
@@ -546,7 +574,7 @@
         document.getElementById("room-output").innerHTML =
           `<div class="error-msg">
             ⚠️ Could not load data: ${err.message}<br/>
-            Make sure API Gateway CORS allows the Render domain and the Authorization header.
+            Make sure you are signed in and the Firebase token was sent to Lambda.
           </div>`;
       }
     }
@@ -659,3 +687,4 @@
   </script>
 
 </body>
+</html>
