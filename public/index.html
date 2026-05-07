@@ -4,8 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SSU Room Scanner</title>
+
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: Arial, sans-serif;
@@ -14,7 +19,86 @@
       min-height: 100vh;
     }
 
-    /* ── HEADER ── */
+    /* ── AUTH SCREEN ───────────────────────────────────────────── */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+    }
+
+    .auth-card {
+      background: white;
+      max-width: 440px;
+      width: 100%;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+      text-align: center;
+    }
+
+    .auth-card h1 {
+      color: #1e3a8a;
+      margin-bottom: 12px;
+      font-size: 1.8rem;
+    }
+
+    .auth-card p {
+      color: #4b5563;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .auth-card button,
+    #sign-out-btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #1e3a8a;
+      color: white;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .auth-card button:hover,
+    #sign-out-btn:hover {
+      background: #1d4ed8;
+    }
+
+    #auth-error {
+      color: #b91c1c;
+      margin-top: 16px;
+      font-size: 0.9rem;
+    }
+
+    #app {
+      display: none;
+    }
+
+    #user-info {
+      font-size: 0.8rem;
+      opacity: 0.9;
+      margin-right: 10px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────────── */
     header {
       background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
       color: white;
@@ -25,11 +109,23 @@
       flex-wrap: wrap;
       gap: 12px;
     }
-    header h1 { font-size: 1.5rem; }
-    header p  { font-size: 0.85rem; opacity: 0.8; margin-top: 3px; }
-    #last-refresh { font-size: 0.8rem; opacity: 0.7; }
 
-    /* ── SUMMARY BAR ── */
+    header h1 {
+      font-size: 1.5rem;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-top: 3px;
+    }
+
+    #last-refresh {
+      font-size: 0.8rem;
+      opacity: 0.75;
+    }
+
+    /* ── SUMMARY BAR ───────────────────────────────────────────── */
     .summary {
       background: white;
       border-bottom: 1px solid #e2e8f0;
@@ -38,14 +134,35 @@
       gap: 24px;
       flex-wrap: wrap;
     }
-    .stat { text-align: center; }
-    .stat .num  { font-size: 1.5rem; font-weight: bold; }
-    .stat .label { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
-    .stat.empty    .num { color: #10b981; }
-    .stat.occupied .num { color: #ef4444; }
-    .stat.total    .num { color: #1e3a8a; }
 
-    /* ── CONTROLS ── */
+    .stat {
+      text-align: center;
+    }
+
+    .stat .num {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .stat .label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+
+    .stat.empty .num {
+      color: #10b981;
+    }
+
+    .stat.occupied .num {
+      color: #ef4444;
+    }
+
+    .stat.total .num {
+      color: #1e3a8a;
+    }
+
+    /* ── CONTROLS ──────────────────────────────────────────────── */
     .controls {
       padding: 16px 32px;
       display: flex;
@@ -55,13 +172,16 @@
       background: white;
       border-bottom: 1px solid #e2e8f0;
     }
-    .controls select, .controls input {
+
+    .controls select,
+    .controls input {
       padding: 8px 12px;
       border-radius: 6px;
       border: 1px solid #cbd5e0;
       font-size: 0.875rem;
       background: white;
     }
+
     .controls button {
       padding: 8px 16px;
       border-radius: 6px;
@@ -71,11 +191,21 @@
       font-size: 0.875rem;
       cursor: pointer;
     }
-    .controls button:hover { background: #1d4ed8; }
 
-    /* ── MAIN GRID ── */
-    main { padding: 24px 32px; }
-    #status-msg { font-size: 0.85rem; color: #6b7280; margin-bottom: 16px; }
+    .controls button:hover {
+      background: #1d4ed8;
+    }
+
+    /* ── MAIN GRID ─────────────────────────────────────────────── */
+    main {
+      padding: 24px 32px;
+    }
+
+    #status-msg {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
 
     .buildings-grid {
       display: flex;
@@ -92,11 +222,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
+
     .building-section h2 .b-counts {
       font-size: 0.8rem;
       font-weight: normal;
       color: #6b7280;
+      white-space: nowrap;
     }
 
     .rooms-grid {
@@ -113,12 +246,29 @@
       border-left: 4px solid #cbd5e0;
       transition: box-shadow 0.2s;
     }
-    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .card.empty    { border-left-color: #10b981; }
-    .card.occupied { border-left-color: #ef4444; }
 
-    .card h3 { font-size: 0.9rem; margin-bottom: 4px; }
-    .card .meta { font-size: 0.75rem; color: #6b7280; margin-bottom: 8px; }
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card.empty {
+      border-left-color: #10b981;
+    }
+
+    .card.occupied {
+      border-left-color: #ef4444;
+    }
+
+    .card h3 {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .card .meta {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
 
     .badge {
       display: inline-block;
@@ -128,183 +278,384 @@
       font-weight: bold;
       text-transform: uppercase;
     }
-    .badge.empty    { background: #d1fae5; color: #065f46; }
-    .badge.occupied { background: #fee2e2; color: #991b1b; }
 
-    .card .updated { font-size: 0.7rem; color: #9ca3af; margin-top: 6px; }
+    .badge.empty {
+      background: #d1fae5;
+      color: #065f46;
+    }
 
-    .no-results { color: #6b7280; font-size: 0.9rem; padding: 20px 0; }
+    .badge.occupied {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .card .updated {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+
+    .no-results {
+      color: #6b7280;
+      font-size: 0.9rem;
+      padding: 20px 0;
+    }
+
     .error-msg {
-      background: #fee2e2; color: #991b1b;
-      padding: 16px; border-radius: 8px; margin-bottom: 16px;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      line-height: 1.5;
     }
 
     @media (max-width: 600px) {
-      header, .controls, main, .summary { padding-left: 16px; padding-right: 16px; }
+      header,
+      .controls,
+      main,
+      .summary {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .header-right {
+        align-items: flex-start;
+      }
+
+      .user-row {
+        justify-content: flex-start;
+      }
+
+      .building-section h2 {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<header>
-  <div>
-    <h1>📍 SSU Room Scanner</h1>
-    <p>Sonoma State University — Real-time occupancy for all academic buildings</p>
+  <!-- SIGN-IN SCREEN -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <h1>📍 SSU Room Scanner</h1>
+      <p>
+        Sign in with Google to view the Sonoma State room availability dashboard.
+      </p>
+      <button id="sign-in-btn">Sign in with Google</button>
+      <p id="auth-error"></p>
+    </div>
   </div>
-  <div id="last-refresh">—</div>
-</header>
 
-<div class="summary">
-  <div class="stat total">
-    <div class="num" id="count-total">—</div>
-    <div class="label">Total Rooms</div>
+  <!-- DASHBOARD APP -->
+  <div id="app">
+    <header>
+      <div>
+        <h1>📍 SSU Room Scanner</h1>
+        <p>Sonoma State University — Real-time occupancy for academic buildings</p>
+      </div>
+
+      <div class="header-right">
+        <div class="user-row">
+          <span id="user-info"></span>
+          <button id="sign-out-btn">Sign out</button>
+        </div>
+        <div id="last-refresh">—</div>
+      </div>
+    </header>
+
+    <div class="summary">
+      <div class="stat total">
+        <div class="num" id="count-total">—</div>
+        <div class="label">Total Rooms</div>
+      </div>
+
+      <div class="stat empty">
+        <div class="num" id="count-empty">—</div>
+        <div class="label">Empty</div>
+      </div>
+
+      <div class="stat occupied">
+        <div class="num" id="count-occupied">—</div>
+        <div class="label">Occupied</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <select id="filter-building">
+        <option value="all">All Buildings</option>
+        <option value="Salazar Hall">Salazar Hall</option>
+        <option value="Darwin Hall">Darwin Hall</option>
+        <option value="Stevenson Hall">Stevenson Hall</option>
+        <option value="Schulz Information Center">Schulz Library</option>
+        <option value="Student Center">Student Center</option>
+        <option value="Rachel Carson Hall">Rachel Carson Hall</option>
+      </select>
+
+      <select id="filter-type">
+        <option value="all">All Room Types</option>
+        <option value="Study Room">Study Rooms</option>
+        <option value="Classroom">Classrooms</option>
+        <option value="Lab">Labs</option>
+        <option value="Lounge">Lounges</option>
+      </select>
+
+      <select id="filter-status">
+        <option value="all">Any Status</option>
+        <option value="empty">Empty Only</option>
+        <option value="occupied">Occupied Only</option>
+      </select>
+
+      <button onclick="loadRooms()">🔄 Refresh</button>
+    </div>
+
+    <main>
+      <p id="status-msg">Loading rooms...</p>
+      <div id="room-output" class="buildings-grid"></div>
+    </main>
   </div>
-  <div class="stat empty">
-    <div class="num" id="count-empty">—</div>
-    <div class="label">Empty</div>
-  </div>
-  <div class="stat occupied">
-    <div class="num" id="count-occupied">—</div>
-    <div class="label">Occupied</div>
-  </div>
-</div>
 
-<div class="controls">
-  <select id="filter-building">
-    <option value="all">All Buildings</option>
-    <option value="Salazar Hall">Salazar Hall</option>
-    <option value="Darwin Hall">Darwin Hall</option>
-    <option value="Stevenson Hall">Stevenson Hall</option>
-    <option value="Schulz Information Center">Schulz Library</option>
-    <option value="Student Center">Student Center</option>
-    <option value="Rachel Carson Hall">Rachel Carson Hall</option>
-  </select>
-  <select id="filter-type">
-    <option value="all">All Room Types</option>
-    <option value="Study Room">Study Rooms</option>
-    <option value="Classroom">Classrooms</option>
-    <option value="Lab">Labs</option>
-  </select>
-  <select id="filter-status">
-    <option value="all">Any Status</option>
-    <option value="empty">Empty Only</option>
-    <option value="occupied">Occupied Only</option>
-  </select>
-  <button onclick="loadRooms()">🔄 Refresh</button>
-</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-<main>
-  <p id="status-msg">Loading rooms...</p>
-  <div id="room-output" class="buildings-grid"></div>
-</main>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB35Rhii5NV460xBYnmsHz3yNfdkiGfLRo",
+      authDomain: "ssu-room-scanner.firebaseapp.com",
+      projectId: "ssu-room-scanner",
+      storageBucket: "ssu-room-scanner.firebasestorage.app",
+      messagingSenderId: "912163980428",
+      appId: "1:912163980428:web:7534395e470477c3d667a9",
+      measurementId: "G-9QGR1DEB98"
+    };
 
-<script>
-  // ── CONFIG ──────────────────────────────────────────────────────
-  // Replace with your API Gateway URL after deploying Lambda
-  const API_URL = "https://f01fxvetb3.execute-api.us-west-1.amazonaws.com/prod";
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const provider = new GoogleAuthProvider();
 
-  let allRooms = [];
+    const API_URL = "https://f01fxvetb3.execute-api.us-west-1.amazonaws.com/prod";
 
-  // ── FETCH ───────────────────────────────────────────────────────
-  async function loadRooms() {
-    document.getElementById("status-msg").textContent = "Fetching latest data...";
-    document.getElementById("room-output").innerHTML = "";
+    let allRooms = [];
+    let currentUser = null;
+    let currentIdToken = null;
 
-    try {
-      const res = await fetch(`${API_URL}/rooms`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      allRooms = Array.isArray(data) ? data : (data.rooms || []);
-      document.getElementById("last-refresh").textContent =
-        `Last updated: ${new Date().toLocaleTimeString()}`;
-      applyFilters();
-    } catch (err) {
-      document.getElementById("status-msg").textContent = "";
-      document.getElementById("room-output").innerHTML =
-        `<div class="error-msg">⚠️ Could not load data: ${err.message}<br/>
-         Make sure API_URL is set to your API Gateway endpoint.</div>`;
-    }
-  }
+    const authScreen = document.getElementById("auth-screen");
+    const appScreen = document.getElementById("app");
+    const signInBtn = document.getElementById("sign-in-btn");
+    const signOutBtn = document.getElementById("sign-out-btn");
+    const authError = document.getElementById("auth-error");
+    const userInfo = document.getElementById("user-info");
 
-  // ── FILTER & RENDER ─────────────────────────────────────────────
-  function applyFilters() {
-    const building = document.getElementById("filter-building").value;
-    const type     = document.getElementById("filter-type").value;
-    const status   = document.getElementById("filter-status").value;
+    signInBtn.addEventListener("click", async () => {
+      authError.textContent = "";
 
-    let rooms = allRooms;
-    if (building !== "all") rooms = rooms.filter(r => r.Building === building);
-    if (type     !== "all") rooms = rooms.filter(r => r.RoomType === type);
-    if (status   !== "all") rooms = rooms.filter(r => r.Status   === status);
-
-    // Update summary counts
-    document.getElementById("count-total").textContent    = rooms.length;
-    document.getElementById("count-empty").textContent    = rooms.filter(r => r.Status === "empty").length;
-    document.getElementById("count-occupied").textContent = rooms.filter(r => r.Status === "occupied").length;
-
-    document.getElementById("status-msg").textContent =
-      `Showing ${rooms.length} room${rooms.length !== 1 ? "s" : ""}`;
-
-    renderRooms(rooms);
-  }
-
-  function renderRooms(rooms) {
-    const output = document.getElementById("room-output");
-
-    if (rooms.length === 0) {
-      output.innerHTML = `<p class="no-results">No rooms match your filters.</p>`;
-      return;
-    }
-
-    // Group by building
-    const grouped = {};
-    rooms.forEach(r => {
-      if (!grouped[r.Building]) grouped[r.Building] = [];
-      grouped[r.Building].push(r);
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error("Firebase sign-in error:", err);
+        authError.textContent = "Sign-in failed. Please try again.";
+      }
     });
 
-    output.innerHTML = Object.entries(grouped).map(([building, bRooms]) => {
-      const emptyCount    = bRooms.filter(r => r.Status === "empty").length;
-      const occupiedCount = bRooms.filter(r => r.Status === "occupied").length;
-      return `
-        <div class="building-section">
-          <h2>
-            🏛 ${building}
-            <span class="b-counts">
-              ${emptyCount} empty · ${occupiedCount} occupied
-            </span>
-          </h2>
-          <div class="rooms-grid">
-            ${bRooms.map(room => `
-              <div class="card ${room.Status}">
-                <h3>${room.RoomName}</h3>
-                <p class="meta">
-                  Floor ${room.Floor} &nbsp;·&nbsp;
-                  ${room.RoomType} &nbsp;·&nbsp;
-                  👥 ${room.Capacity}
-                </p>
-                <span class="badge ${room.Status}">${room.Status}</span>
-                <p class="updated">
-                  ${room.LastUpdated
-                    ? "Updated " + new Date(room.LastUpdated).toLocaleTimeString()
-                    : ""}
-                </p>
-              </div>
-            `).join("")}
+    signOutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Firebase sign-out error:", err);
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        currentUser = null;
+        currentIdToken = null;
+
+        appScreen.style.display = "none";
+        authScreen.style.display = "flex";
+        userInfo.textContent = "";
+
+        clearDashboard();
+        return;
+      }
+
+      currentUser = user;
+      currentIdToken = await user.getIdToken();
+
+      authScreen.style.display = "none";
+      appScreen.style.display = "block";
+      userInfo.textContent = user.email || "Signed in";
+
+      await loadRooms();
+    });
+
+    async function authHeaders() {
+      if (!currentUser) return {};
+
+      currentIdToken = await currentUser.getIdToken();
+
+      return {
+        Authorization: `Bearer ${currentIdToken}`
+      };
+    }
+
+    function clearDashboard() {
+      allRooms = [];
+      document.getElementById("count-total").textContent = "—";
+      document.getElementById("count-empty").textContent = "—";
+      document.getElementById("count-occupied").textContent = "—";
+      document.getElementById("last-refresh").textContent = "—";
+      document.getElementById("status-msg").textContent = "Loading rooms...";
+      document.getElementById("room-output").innerHTML = "";
+    }
+
+    async function loadRooms() {
+      if (!currentUser) return;
+
+      document.getElementById("status-msg").textContent = "Fetching latest data...";
+      document.getElementById("room-output").innerHTML = "";
+
+      try {
+        const res = await fetch(`${API_URL}/rooms`, {
+          headers: await authHeaders()
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        allRooms = Array.isArray(data) ? data : (data.rooms || []);
+
+        document.getElementById("last-refresh").textContent =
+          `Last updated: ${new Date().toLocaleTimeString()}`;
+
+        applyFilters();
+      } catch (err) {
+        console.error("Room loading error:", err);
+
+        document.getElementById("status-msg").textContent = "";
+        document.getElementById("room-output").innerHTML =
+          `<div class="error-msg">
+            ⚠️ Could not load data: ${err.message}<br/>
+            Make sure API Gateway CORS allows the Render domain and the Authorization header.
+          </div>`;
+      }
+    }
+
+    window.loadRooms = loadRooms;
+
+    function applyFilters() {
+      const building = document.getElementById("filter-building").value;
+      const type = document.getElementById("filter-type").value;
+      const status = document.getElementById("filter-status").value;
+
+      let rooms = allRooms;
+
+      if (building !== "all") {
+        rooms = rooms.filter(r => r.Building === building);
+      }
+
+      if (type !== "all") {
+        rooms = rooms.filter(r => r.RoomType === type);
+      }
+
+      if (status !== "all") {
+        rooms = rooms.filter(r => r.Status === status);
+      }
+
+      document.getElementById("count-total").textContent = rooms.length;
+      document.getElementById("count-empty").textContent =
+        rooms.filter(r => r.Status === "empty").length;
+      document.getElementById("count-occupied").textContent =
+        rooms.filter(r => r.Status === "occupied").length;
+
+      document.getElementById("status-msg").textContent =
+        `Showing ${rooms.length} room${rooms.length !== 1 ? "s" : ""}`;
+
+      renderRooms(rooms);
+    }
+
+    function renderRooms(rooms) {
+      const output = document.getElementById("room-output");
+
+      if (rooms.length === 0) {
+        output.innerHTML = `<p class="no-results">No rooms match your filters.</p>`;
+        return;
+      }
+
+      const grouped = {};
+
+      rooms.forEach(room => {
+        const building = room.Building || "Unknown Building";
+
+        if (!grouped[building]) {
+          grouped[building] = [];
+        }
+
+        grouped[building].push(room);
+      });
+
+      output.innerHTML = Object.entries(grouped).map(([building, bRooms]) => {
+        const emptyCount = bRooms.filter(r => r.Status === "empty").length;
+        const occupiedCount = bRooms.filter(r => r.Status === "occupied").length;
+
+        return `
+          <div class="building-section">
+            <h2>
+              🏛 ${building}
+              <span class="b-counts">
+                ${emptyCount} empty · ${occupiedCount} occupied
+              </span>
+            </h2>
+
+            <div class="rooms-grid">
+              ${bRooms.map(room => {
+                const status = room.Status || "unknown";
+                const roomName = room.RoomName || room.RoomID || "Unnamed Room";
+                const floor = room.Floor ?? "—";
+                const roomType = room.RoomType || "Room";
+                const capacity = room.Capacity ?? "—";
+                const updated = room.LastUpdated
+                  ? "Updated " + new Date(room.LastUpdated).toLocaleTimeString()
+                  : "";
+
+                return `
+                  <div class="card ${status}">
+                    <h3>${roomName}</h3>
+                    <p class="meta">
+                      Floor ${floor} &nbsp;·&nbsp;
+                      ${roomType} &nbsp;·&nbsp;
+                      👥 ${capacity}
+                    </p>
+                    <span class="badge ${status}">${status}</span>
+                    <p class="updated">${updated}</p>
+                  </div>
+                `;
+              }).join("")}
+            </div>
           </div>
-        </div>`;
-    }).join("");
-  }
+        `;
+      }).join("");
+    }
 
-  // ── BIND FILTERS ────────────────────────────────────────────────
-  ["filter-building", "filter-type", "filter-status"].forEach(id => {
-    document.getElementById(id).addEventListener("change", applyFilters);
-  });
+    ["filter-building", "filter-type", "filter-status"].forEach(id => {
+      document.getElementById(id).addEventListener("change", applyFilters);
+    });
 
-  // Load on open, auto-refresh every 60 seconds
-  loadRooms();
-  setInterval(loadRooms, 60000);
-</script>
+    setInterval(() => {
+      if (currentUser) {
+        loadRooms();
+      }
+    }, 60000);
+  </script>
 
 </body>
-</html>
