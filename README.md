@@ -121,10 +121,8 @@ study-room-finder/
 │   └── seed_and_simulate.py
 ├── iam/
 │   └── iam_policy.json
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── cd.yml
+├── ci.yml
+├── cd.yml
 ├── render.yaml
 ├── package.json
 └── README.md
